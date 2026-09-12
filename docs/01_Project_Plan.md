@@ -341,7 +341,8 @@ The MVP shall be considered complete when
 
 ---
 
-# 12   . Technology Stack
+# 12
+. Technology Stack
 
 ## Backend
 
