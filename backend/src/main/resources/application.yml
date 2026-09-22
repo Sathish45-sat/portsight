@@ -12,7 +12,7 @@ spring:
     locations: classpath:db/migration
 
 jwt:
-  secret: Jz7BExPDCTChI1xZ5uvT50zXhc+rDYeRbrnzCUP2WjA=
+  secret: ${JWT_SECRET:Jz7BExPDCTChI1xZ5uvT50zXhc+rDYeRbrnzCUP2WjA=}
   expiration-ms: 86400000
 
 server:
