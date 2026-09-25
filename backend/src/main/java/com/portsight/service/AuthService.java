@@ -6,7 +6,8 @@ import com.portsight.dto.response.AuthResponse;
 import com.portsight.entity.User;
 import com.portsight.repository.UserRepository;
 import com.portsight.security.JwtTokenProvider;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,25 +18,30 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtTokenProvider jwtTokenProvider) {
+                       JwtTokenProvider jwtTokenProvider,
+                       AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.authenticationManager = authenticationManager;
     }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use: " + request.getEmail());
+        String email = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email is already in use: " + email);
         }
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         User user = User.builder()
-                .email(request.getEmail())
+                .email(email)
                 .passwordHash(encodedPassword)
                 .build();
         userRepository.save(user);
@@ -45,14 +51,13 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+        String email = request.getEmail().trim().toLowerCase();
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new BadCredentialsException("Invalid email or password");
-        }
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, request.getPassword())
+        );
 
-        String token = jwtTokenProvider.generateToken(user.getEmail());
-        return new AuthResponse(token, user.getEmail());
+        String token = jwtTokenProvider.generateToken(email);
+        return new AuthResponse(token, email);
     }
 }
