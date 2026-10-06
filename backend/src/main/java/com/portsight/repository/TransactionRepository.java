@@ -16,6 +16,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     List<Transaction> findByAssetId(Long assetId);
 
+    List<Transaction> findByAssetPortfolioId(Long portfolioId);
+
     boolean existsByAssetIdAndTransactionTypeAndQuantityAndPricePerUnitAndTransactionDate(
             Long assetId,
             TransactionType transactionType,

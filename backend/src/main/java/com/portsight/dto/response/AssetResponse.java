@@ -21,6 +21,6 @@ public class AssetResponse {
     private AssetType assetType;
     private BigDecimal currentPrice;
     private BigDecimal avgBuyPrice;
-    private BigDecimal quantityHeld;
+    private BigDecimal quantityHeld; // how much stock currently own
     private LocalDateTime createdAt;
 }

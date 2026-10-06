@@ -13,4 +13,12 @@ public interface CostBasisStrategy {
      * @return Total realized profit (positive for gain, negative for loss)
      */
     BigDecimal calculateRealizedProfit(List<Transaction> transactions);
+
+    /**
+     * Calculates current average buy price across transactions.
+     *
+     * @param transactions Historical transactions for an asset
+     * @return Current weighted average purchase price
+     */
+    BigDecimal calculateAverageBuyPrice(List<Transaction> transactions);
 }
