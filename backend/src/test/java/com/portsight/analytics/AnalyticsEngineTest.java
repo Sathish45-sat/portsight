@@ -160,4 +160,104 @@ class AnalyticsEngineTest {
         assertEquals("LOSE", largest.getSymbol());
         assertEquals(0, largest.getMarketValue().compareTo(new BigDecimal("4000.00")));
     }
+
+    @Test
+    @DisplayName("Full Engine Stack Integration: Realistic Multi-Asset Portfolio")
+    void testFullEngineStack_multiAssetPortfolio() {
+        // --- Asset 1: AAPL (Testing Doc Scenario: Buys, Partial Sell, Gain) ---
+        Transaction aaplBuy1 = Transaction.builder()
+                .transactionType(TransactionType.BUY)
+                .quantity(new BigDecimal("100"))
+                .pricePerUnit(new BigDecimal("100.00"))
+                .transactionDate(LocalDateTime.now().minusDays(5))
+                .build();
+        Transaction aaplBuy2 = Transaction.builder()
+                .transactionType(TransactionType.BUY)
+                .quantity(new BigDecimal("50"))
+                .pricePerUnit(new BigDecimal("120.00"))
+                .transactionDate(LocalDateTime.now().minusDays(4))
+                .build();
+        Transaction aaplSell = Transaction.builder()
+                .transactionType(TransactionType.SELL)
+                .quantity(new BigDecimal("80"))
+                .pricePerUnit(new BigDecimal("130.00"))
+                .transactionDate(LocalDateTime.now().minusDays(3))
+                .build();
+
+        BigDecimal aaplAvgBuy = costStrategy.calculateAverageBuyPrice(List.of(aaplBuy1, aaplBuy2, aaplSell));
+        assertEquals(0, aaplAvgBuy.compareTo(new BigDecimal("106.67")));
+
+        BigDecimal aaplRealized = costStrategy.calculateRealizedProfit(List.of(aaplBuy1, aaplBuy2, aaplSell));
+        assertEquals(0, aaplRealized.compareTo(new BigDecimal("1866.40")));
+
+        Asset aapl = Asset.builder()
+                .id(1L)
+                .symbol("AAPL")
+                .name("Apple Inc.")
+                .quantityHeld(new BigDecimal("70"))
+                .avgBuyPrice(aaplAvgBuy) // 106.67
+                .currentPrice(new BigDecimal("150.00")) // Market Value = 10500.00
+                .build();
+
+        // --- Asset 2: MSFT (Pure Buy lot, No Sells) ---
+        Transaction msftBuy = Transaction.builder()
+                .transactionType(TransactionType.BUY)
+                .quantity(new BigDecimal("20"))
+                .pricePerUnit(new BigDecimal("200.00"))
+                .transactionDate(LocalDateTime.now().minusDays(2))
+                .build();
+
+        BigDecimal msftRealized = costStrategy.calculateRealizedProfit(List.of(msftBuy));
+        assertEquals(0, msftRealized.compareTo(BigDecimal.ZERO));
+
+        Asset msft = Asset.builder()
+                .id(2L)
+                .symbol("MSFT")
+                .name("Microsoft Corp.")
+                .quantityHeld(new BigDecimal("20"))
+                .avgBuyPrice(new BigDecimal("200.00"))
+                .currentPrice(new BigDecimal("250.00")) // Market Value = 5000.00
+                .build();
+
+        List<Asset> assets = List.of(aapl, msft);
+        List<Transaction> allTransactions = List.of(aaplBuy1, aaplBuy2, aaplSell, msftBuy);
+
+        // 1. ValuationEngine Stack Verification
+        BigDecimal totalValue = valuationEngine.calculatePortfolioCurrentValue(assets);
+        assertEquals(0, totalValue.compareTo(new BigDecimal("15500.00")), "Total Value: 10500 + 5000 = 15500");
+
+        BigDecimal totalCostBasis = valuationEngine.calculatePortfolioTotalInvestment(assets);
+        assertEquals(0, totalCostBasis.compareTo(new BigDecimal("11466.90")), "Total Cost Basis: 7466.90 + 4000 = 11466.90");
+
+        BigDecimal returnPct = valuationEngine.calculateReturnPercentage(totalValue, totalCostBasis);
+        assertEquals(0, returnPct.compareTo(new BigDecimal("35.17")), "Return %: (4033.10 / 11466.90) * 100 = 35.17%");
+
+        // 2. ProfitEngine Stack Verification
+        BigDecimal totalUnrealized = profitEngine.calculatePortfolioUnrealizedProfit(assets);
+        assertEquals(0, totalUnrealized.compareTo(new BigDecimal("4033.10")), "Unrealized: 3033.10 + 1000 = 4033.10");
+
+        BigDecimal totalRealized = profitEngine.calculateRealizedProfit(allTransactions);
+        assertEquals(0, totalRealized.compareTo(new BigDecimal("1866.40")), "Realized: 1866.40 + 0 = 1866.40");
+
+        BigDecimal totalProfit = profitEngine.calculateTotalProfit(totalUnrealized, totalRealized);
+        assertEquals(0, totalProfit.compareTo(new BigDecimal("5899.50")), "Total Profit: 4033.10 + 1866.40 = 5899.50");
+
+        // 3. AllocationEngine Stack Verification
+        List<AssetAllocationResponse> allocations = allocationEngine.calculateAllocations(assets);
+        assertEquals(2, allocations.size());
+        assertEquals(0, allocations.get(0).getAllocationPercentage().compareTo(new BigDecimal("67.74"))); // 10500 / 15500 * 100
+        assertEquals(0, allocations.get(1).getAllocationPercentage().compareTo(new BigDecimal("32.26"))); // 5000 / 15500 * 100
+        BigDecimal sumWeights = allocations.get(0).getAllocationPercentage().add(allocations.get(1).getAllocationPercentage());
+        assertEquals(0, sumWeights.compareTo(new BigDecimal("100.00")), "Weights sum to 100%");
+
+        // 4. PerformanceEngine Stack Verification
+        AssetPerformanceResponse best = performanceEngine.findBestPerformer(assets);
+        assertEquals("AAPL", best.getSymbol(), "AAPL (+40.62%) outperforms MSFT (+25%)");
+
+        AssetPerformanceResponse worst = performanceEngine.findWorstPerformer(assets);
+        assertEquals("MSFT", worst.getSymbol(), "MSFT is worst performer (+25%)");
+
+        AssetPerformanceResponse largest = performanceEngine.findLargestHolding(assets);
+        assertEquals("AAPL", largest.getSymbol(), "AAPL is largest holding (10,500 vs 5,000)");
+    }
 }
