@@ -70,4 +70,29 @@ public class ValuationEngine {
                 .multiply(BigDecimal.valueOf(100))
                 .setScale(2, ROUNDING); // Formatted to 2 decimals e.g. 15.25%
     }
+
+    /**
+     * Daily Change = Current Value - Yesterday's Snapshot Value.
+     * Returns 0 if there is no previous snapshot.
+     */
+    public BigDecimal calculateDailyChange(BigDecimal currentValue, BigDecimal yesterdayValue) {
+        if (currentValue == null || yesterdayValue == null) {
+            return BigDecimal.ZERO;
+        }
+        return currentValue.subtract(yesterdayValue).setScale(SCALE, ROUNDING);
+    }
+
+    /**
+     * Daily Change % = ((Current Value - Yesterday's Value) / Yesterday's Value) * 100.
+     * Returns 0 if yesterdayValue is null or zero.
+     */
+    public BigDecimal calculateDailyChangePercentage(BigDecimal currentValue, BigDecimal yesterdayValue) {
+        if (currentValue == null || yesterdayValue == null || yesterdayValue.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal change = currentValue.subtract(yesterdayValue);
+        return change.divide(yesterdayValue, SCALE, ROUNDING)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(2, ROUNDING);
+    }
 }

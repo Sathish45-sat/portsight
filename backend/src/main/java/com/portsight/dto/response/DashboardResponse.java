@@ -22,6 +22,10 @@ public class DashboardResponse {
     private BigDecimal totalInvestment;
     private BigDecimal totalReturnPercentage;
 
+    // Daily Change metrics (relative to yesterday's snapshot)
+    private BigDecimal dailyChange;
+    private BigDecimal dailyChangePercentage;
+
     // Profit Engine metrics
     private BigDecimal totalUnrealizedProfit;
     private BigDecimal totalRealizedProfit;
@@ -34,4 +38,7 @@ public class DashboardResponse {
     private AssetPerformanceResponse bestPerformer;
     private AssetPerformanceResponse worstPerformer;
     private AssetPerformanceResponse largestHolding;
+
+    // Historical trend snapshots (for growth chart)
+    private List<SnapshotResponse> recentSnapshots;
 }
