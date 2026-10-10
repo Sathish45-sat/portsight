@@ -391,6 +391,12 @@ com.portsight
 
 **Cascade behavior on asset deletion:** Deleting an `Asset` cascade-deletes its `Transaction` history with it. This is documented as a destructive, non-reversible action — otherwise the same historical-integrity problem transaction deletion was designed to avoid simply reappears one level up, at the asset level.
 
+### 8.3 Token Storage in Frontend (localStorage vs. httpOnly Cookies)
+
+**Decision:** For V1, the JWT authentication token is stored in `localStorage` for simplicity of frontend request interception.
+
+**Rationale:** We acknowledge that `localStorage` is accessible to client-side scripts and thus vulnerable to Cross-Site Scripting (XSS). For hardened production deployments, `httpOnly`, `Secure`, `SameSite` cookies with CSRF defense represent the alternative approach.
+
 ## 9. Open Items Before Coding Begins
 
 - [ ] Decide locking strategy for concurrent transaction writes on the same asset: optimistic (`@Version`) vs pessimistic (`SELECT ... FOR UPDATE`). Optimistic is simpler to implement and sufficient at V1 traffic levels.
