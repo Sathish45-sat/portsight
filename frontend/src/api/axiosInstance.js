@@ -31,6 +31,7 @@ axiosInstance.interceptors.response.use(
       // (prevents reloading and wiping bad credentials error message)
       if (!url.includes('/api/auth/login')) {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         window.location.href = '/login';
       }
     }
