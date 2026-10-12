@@ -46,3 +46,18 @@ export const formatNumber = (value) => {
     maximumFractionDigits: 4,
   }).format(Number(value));
 };
+
+export const formatDate = (dateString) => {
+  if (!dateString) return '—';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '—';
+    return new Intl.DateTimeFormat('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
+  } catch {
+    return '—';
+  }
+};
