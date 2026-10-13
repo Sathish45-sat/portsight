@@ -47,6 +47,16 @@ export const formatNumber = (value) => {
   }).format(Number(value));
 };
 
+export const formatQuantity = (value) => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return '0';
+  }
+  return new Intl.NumberFormat('en-IN', {
+    maximumFractionDigits: 6,
+    minimumFractionDigits: 0,
+  }).format(Number(value));
+};
+
 export const formatDate = (dateString) => {
   if (!dateString) return '—';
   try {
@@ -61,3 +71,21 @@ export const formatDate = (dateString) => {
     return '—';
   }
 };
+
+export const formatDateTime = (dateString) => {
+  if (!dateString) return '—';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '—';
+    return new Intl.DateTimeFormat('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  } catch {
+    return '—';
+  }
+};
+
