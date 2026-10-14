@@ -39,6 +39,9 @@ public class DashboardResponse {
     private AssetPerformanceResponse worstPerformer;
     private AssetPerformanceResponse largestHolding;
 
+    // Individual Asset Holdings breakdown
+    private List<AssetHoldingResponse> holdings;
+
     // Historical trend snapshots (for growth chart)
     private List<SnapshotResponse> recentSnapshots;
 }

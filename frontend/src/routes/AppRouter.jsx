@@ -4,6 +4,7 @@ import Register from '../pages/Register';
 import Portfolios from '../pages/Portfolios';
 import PortfolioDetail from '../pages/PortfolioDetail';
 import Dashboard from '../pages/Dashboard';
+import NotFound from '../pages/NotFound';
 import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
 
@@ -46,6 +47,14 @@ export const AppRouter = () => {
         }
       />
       <Route
+        path="/portfolios/:id/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
@@ -57,8 +66,8 @@ export const AppRouter = () => {
       {/* Root redirect to /portfolios */}
       <Route path="/" element={<Navigate to="/portfolios" replace />} />
 
-      {/* Catch-all fallback */}
-      <Route path="*" element={<Navigate to="/portfolios" replace />} />
+      {/* Catch-all 404 fallback */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

@@ -1,6 +1,7 @@
 package com.portsight.analytics;
 
 import com.portsight.dto.response.AssetAllocationResponse;
+import com.portsight.dto.response.AssetHoldingResponse;
 import com.portsight.dto.response.AssetPerformanceResponse;
 import com.portsight.dto.response.DashboardResponse;
 import com.portsight.dto.response.SnapshotResponse;
@@ -78,8 +79,8 @@ public class DashboardAggregatorService {
         Optional<PortfolioSnapshot> yesterdaySnapshot = snapshotRepository.findByPortfolioIdAndSnapshotDate(portfolioId, yesterday);
         BigDecimal yesterdayValue = yesterdaySnapshot.map(PortfolioSnapshot::getCurrentValue).orElse(null);
 
-        BigDecimal dailyChange = valuationEngine.calculateDailyChange(totalPortfolioValue, yesterdayValue);
-        BigDecimal dailyChangePercentage = valuationEngine.calculateDailyChangePercentage(totalPortfolioValue, yesterdayValue);
+        BigDecimal dailyChange = yesterdayValue != null ? valuationEngine.calculateDailyChange(totalPortfolioValue, yesterdayValue) : null;
+        BigDecimal dailyChangePercentage = yesterdayValue != null ? valuationEngine.calculateDailyChangePercentage(totalPortfolioValue, yesterdayValue) : null;
 
         // 3. Profit metrics
         BigDecimal totalUnrealizedProfit = profitEngine.calculatePortfolioUnrealizedProfit(assets);
@@ -94,7 +95,32 @@ public class DashboardAggregatorService {
         AssetPerformanceResponse worstPerformer = performanceEngine.findWorstPerformer(assets);
         AssetPerformanceResponse largestHolding = performanceEngine.findLargestHolding(assets);
 
-        // 6. Recent Historical Snapshots (for frontend growth chart)
+        // 6. Asset Holdings breakdown
+        List<AssetHoldingResponse> holdings = assets.stream()
+                .map(asset -> {
+                    BigDecimal qty = asset.getQuantityHeld() != null ? asset.getQuantityHeld() : BigDecimal.ZERO;
+                    BigDecimal avgCost = asset.getAvgBuyPrice() != null ? asset.getAvgBuyPrice() : BigDecimal.ZERO;
+                    BigDecimal price = asset.getCurrentPrice() != null ? asset.getCurrentPrice() : BigDecimal.ZERO;
+                    BigDecimal marketValue = qty.multiply(price).setScale(2, java.math.RoundingMode.HALF_UP);
+                    BigDecimal totalCost = qty.multiply(avgCost).setScale(2, java.math.RoundingMode.HALF_UP);
+                    BigDecimal unrealized = profitEngine.calculateAssetUnrealizedProfit(asset);
+                    BigDecimal returnPct = valuationEngine.calculateReturnPercentage(marketValue, totalCost);
+
+                    return AssetHoldingResponse.builder()
+                            .assetId(asset.getId())
+                            .symbol(asset.getSymbol())
+                            .name(asset.getName())
+                            .quantity(qty)
+                            .avgCost(avgCost)
+                            .currentPrice(price)
+                            .marketValue(marketValue)
+                            .unrealizedProfit(unrealized)
+                            .returnPercentage(returnPct)
+                            .build();
+                })
+                .toList();
+
+        // 7. Recent Historical Snapshots (for frontend growth chart)
         List<SnapshotResponse> recentSnapshots = snapshotRepository.findByPortfolioIdOrderBySnapshotDateAsc(portfolioId)
                 .stream()
                 .map(s -> SnapshotResponse.builder()
@@ -121,6 +147,7 @@ public class DashboardAggregatorService {
                 .bestPerformer(bestPerformer)
                 .worstPerformer(worstPerformer)
                 .largestHolding(largestHolding)
+                .holdings(holdings)
                 .recentSnapshots(recentSnapshots)
                 .build();
     }

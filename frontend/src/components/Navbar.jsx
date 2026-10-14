@@ -60,7 +60,7 @@ export const Navbar = () => {
             onClick={handleLogout}
             className="text-sm text-muted hover:text-ink border border-rule bg-surface px-3 py-1.5 rounded-sm transition-colors cursor-pointer focus-visible:ring-1 focus-visible:ring-accent"
           >
-            Sign out
+            Logout
           </button>
         </div>
       </div>

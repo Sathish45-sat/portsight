@@ -45,9 +45,25 @@ public class ProfitEngine {
     }
 
     /**
-     * Realized P&L calculated by delegating to CostBasisStrategy
+     * Realized P&L calculated by delegating to CostBasisStrategy per asset
      */
     public BigDecimal calculateRealizedProfit(List<Transaction> transactions) {
+        if (transactions == null || transactions.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        boolean hasAssetRefs = transactions.stream().anyMatch(tx -> tx.getAsset() != null && tx.getAsset().getId() != null);
+        if (hasAssetRefs) {
+            java.util.Map<Long, List<Transaction>> byAsset = transactions.stream()
+                    .filter(tx -> tx.getAsset() != null && tx.getAsset().getId() != null)
+                    .collect(java.util.stream.Collectors.groupingBy(tx -> tx.getAsset().getId()));
+
+            return byAsset.values().stream()
+                    .map(costBasisStrategy::calculateRealizedProfit)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)
+                    .setScale(SCALE, ROUNDING);
+        }
+
         return costBasisStrategy.calculateRealizedProfit(transactions);
     }
 
