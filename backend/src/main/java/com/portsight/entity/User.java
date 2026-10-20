@@ -8,10 +8,17 @@ import java.time.LocalDateTime;
 @Table(name="users")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class User {
+
+    public User() {}
+
+    public User(Long id, String email, String passwordHash, LocalDateTime createdAt) {
+        this.id = id;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.createdAt = createdAt;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

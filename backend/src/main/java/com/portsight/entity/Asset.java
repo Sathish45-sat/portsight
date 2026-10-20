@@ -12,10 +12,23 @@ import java.time.LocalDateTime;
 })
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class Asset {
+
+    public Asset() {}
+
+    public Asset(Long id, Portfolio portfolio, String symbol, String name, AssetType assetType, BigDecimal currentPrice, BigDecimal avgBuyPrice, BigDecimal quantityHeld, LocalDateTime createdAt, Long version) {
+        this.id = id;
+        this.portfolio = portfolio;
+        this.symbol = symbol;
+        this.name = name;
+        this.assetType = assetType;
+        this.currentPrice = currentPrice;
+        this.avgBuyPrice = avgBuyPrice != null ? avgBuyPrice : BigDecimal.ZERO;
+        this.quantityHeld = quantityHeld != null ? quantityHeld : BigDecimal.ZERO;
+        this.createdAt = createdAt;
+        this.version = version;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

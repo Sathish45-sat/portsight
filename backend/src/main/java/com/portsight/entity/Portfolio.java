@@ -8,10 +8,17 @@ import java.time.LocalDateTime;
 @Table(name="portfolios")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class Portfolio {
+
+    public Portfolio() {}
+
+    public Portfolio(Long id, User user, String name, LocalDateTime createdAt) {
+        this.id = id;
+        this.user = user;
+        this.name = name;
+        this.createdAt = createdAt;
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

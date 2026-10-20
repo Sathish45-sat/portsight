@@ -10,10 +10,20 @@ import java.time.LocalDateTime;
 @Table(name = "transactions")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class Transaction {
+
+    public Transaction() {}
+
+    public Transaction(Long id, Asset asset, TransactionType transactionType, BigDecimal quantity, BigDecimal pricePerUnit, LocalDateTime transactionDate, LocalDateTime createdAt) {
+        this.id = id;
+        this.asset = asset;
+        this.transactionType = transactionType;
+        this.quantity = quantity;
+        this.pricePerUnit = pricePerUnit;
+        this.transactionDate = transactionDate;
+        this.createdAt = createdAt;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -12,10 +12,19 @@ import java.time.LocalDate;
 })
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class PortfolioSnapshot {
+
+    public PortfolioSnapshot() {}
+
+    public PortfolioSnapshot(Long id, Portfolio portfolio, BigDecimal totalInvestment, BigDecimal currentValue, BigDecimal profitLoss, LocalDate snapshotDate) {
+        this.id = id;
+        this.portfolio = portfolio;
+        this.totalInvestment = totalInvestment;
+        this.currentValue = currentValue;
+        this.profitLoss = profitLoss;
+        this.snapshotDate = snapshotDate;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
